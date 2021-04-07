@@ -1,8 +1,8 @@
 pacman::p_load(understatr, tidyverse, ggthemes, ggtext, glue, ggforce, here, ggsoccer, patchwork, treemapify)
 
-match_id <- 14731
-home_color <- "#FFFFFF"
-away_color <- "#FFCD00"
+match_id <- 14727
+home_color <- "royalblue"
+away_color <- "#149557"
 
 ############# xg timeline #############
 
@@ -26,8 +26,6 @@ if (max(match_data$minute) < 90) {
 home <- home %>% mutate(cumxG = cumsum(xG))
 away <- away %>% mutate(cumxG = cumsum(xG))
 
-# TODO: automate getting the following information (from home and away)
-
 home_team <- home$h_team[2]
 away_team <- away$a_team[2]
 home_goal <- home$h_goals[2]
@@ -45,8 +43,6 @@ home_goal_data <- home %>% filter(result %in% c("Goal", "OwnGoal"))
 away_goal_data <- away %>% filter(result %in% c("Goal", "OwnGoal"))
 home_goal_data
 away_goal_data
-
-# TODO: automate adding annotations to every single goal(s)
 
 xg_timeline <- ggplot() +
   geom_step(
@@ -86,7 +82,7 @@ if (nrow(home_goal_data) != 0) {
         label.fontsize = 10,
         label.family = "Montserrat", label.fontface = "bold",
         label.fill = "#043d4c", label.colour = home_color,
-        label.buffer = unit(2, "mm"),
+        label.buffer = unit(5, "mm"),
         label.hjust = .25,
         con.cap = unit(0, "mm"), con.border = "all",
         con.type = "straight",
@@ -110,7 +106,7 @@ if (nrow(away_goal_data) != 0) {
         label.fontsize = 10,
         label.family = "Montserrat", label.fontface = "bold",
         label.fill = "#043d4c", label.colour = away_color,
-        label.buffer = unit(2, "mm"),
+        label.buffer = unit(5, "mm"),
         label.hjust = .25,
         con.cap = unit(0, "mm"), con.border = "all",
         con.type = "straight",
@@ -170,7 +166,6 @@ ggsave(
 home_goal_shots <- home %>% filter(result %in% c("Goal", "OwnGoal"))
 home_ngoal_shots <- home %>% filter(!(result %in% c("Goal", "OwnGoal")))
 
-
 xg_court <- ggplot() +
   annotate_pitch(fill = "#00303e", colour = "white", dimensions = pitch_opta) +
   theme_pitch() +
@@ -179,14 +174,14 @@ xg_court <- ggplot() +
     data = home, aes(x = 100 * X, y = 100 * Y), shape = 16, size = 10 * sqrt(home$xG),
     color = if_else(
       home$result %in% c("Goal", "OwnGoal"),
-      "royalblue", "azure"
+      "yellow", "azure"
     ), alpha = .9
   ) +
   geom_point(
     data = away, aes(x = 100 - 100 * X, y = 100 - 100 * Y), shape = 16, size = 10 * sqrt(away$xG),
     color = if_else(
       away$result %in% c("Goal", "OwnGoal"),
-      "royalblue", "azure"
+      "yellow", "azure"
     ), alpha = .9
   ) +
   labs(
@@ -240,8 +235,6 @@ ggsave(
 )
 
 ############# match stats #############
-
-# unfortunately understatr::match_stats() does not provide overall team data
 
 xg_data <- match_data %>%
   group_by(h_a, player) %>%
