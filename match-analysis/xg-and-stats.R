@@ -1,8 +1,12 @@
 pacman::p_load(understatr, tidyverse, ggthemes, ggtext, glue, ggforce, here, ggsoccer, patchwork, treemapify)
 
+match_id <- 14731
+home_color <- "#FFFFFF"
+away_color <- "#FFCD00"
+
 ############# xg timeline #############
 
-match_data <- get_match_shots(14718)
+match_data <- get_match_shots(match_id)
 
 home <- match_data %>%
   filter(h_a == "h") %>%
@@ -24,15 +28,18 @@ away <- away %>% mutate(cumxG = cumsum(xG))
 
 # TODO: automate getting the following information (from home and away)
 
-home_color <- "#FFFFFF"
-away_color <- "#FFCD00"
-home_team <- "Fulham"
-away_team <- "Leeds"
-home_goal <- 1
-away_goal <- 2
-home_xg <- 1.47
-away_xg <- 1.41
-match_date <- "Mar 19 2021"
+home_team <- home$h_team[2]
+away_team <- away$a_team[2]
+home_goal <- home$h_goals[2]
+away_goal <- away$a_goals[2]
+home_xg <- home$cumxG %>%
+  last() %>%
+  round(4)
+away_xg <- away$cumxG %>%
+  last() %>%
+  round(4)
+match_date <- lubridate::as_datetime(match_data$date[1]) %>%
+  lubridate::date()
 
 home_goal_data <- home %>% filter(result %in% c("Goal", "OwnGoal"))
 away_goal_data <- away %>% filter(result %in% c("Goal", "OwnGoal"))
@@ -62,61 +69,57 @@ xg_timeline <- ggplot() +
     aes(x = minute, y = cumxG),
     shape = 21, color = away_color,
     stroke = 1, fill = "#043d4c", size = 4
-  ) +
-  geom_mark_circle(
-    data = home_goal_data,
-    aes(
-      x = minute, y = cumxG,
-      label = paste0(player, ", ", minute, "\"")
-    ),
-    show.legend = FALSE,
-    expand = unit(.1, "mm"),
-    radius = unit(0, "mm"),
-    label.fontsize = 10,
-    label.family = "Montserrat", label.fontface = "bold",
-    label.fill = "#043d4c", label.colour = home_color,
-    label.buffer = unit(2, "mm"),
-    label.hjust = .25,
-    con.cap = unit(0, "mm"), con.border = "all",
-    con.type = "straight",
-    con.size = 0.5, con.colour = home_color
-  ) +
-  geom_mark_circle(
-    data = away_goal_data[1, ],
-    aes(
-      x = minute, y = cumxG,
-      label = paste0(player, ", ", minute, "\"")
-    ),
-    show.legend = FALSE,
-    expand = unit(.1, "mm"),
-    radius = unit(0, "mm"),
-    label.fontsize = 10,
-    label.family = "Montserrat", label.fontface = "bold",
-    label.fill = "#043d4c", label.colour = away_color,
-    label.buffer = unit(2, "mm"),
-    label.hjust = .25,
-    con.cap = unit(0, "mm"), con.border = "all",
-    con.type = "straight",
-    con.size = 0.5, con.colour = away_color
-  ) +
-  geom_mark_circle(
-    data = away_goal_data[2, ],
-    aes(
-      x = minute, y = cumxG,
-      label = paste0(player, ", ", minute, "\"")
-    ),
-    show.legend = FALSE,
-    expand = unit(.1, "mm"),
-    radius = unit(0, "mm"),
-    label.fontsize = 10,
-    label.family = "Montserrat", label.fontface = "bold",
-    label.fill = "#043d4c", label.colour = away_color,
-    label.buffer = unit(2, "mm"),
-    label.hjust = .25,
-    con.cap = unit(0, "mm"), con.border = "all",
-    con.type = "straight",
-    con.size = 0.5, con.colour = away_color
-  ) +
+  )
+
+if (nrow(home_goal_data) != 0) {
+  for (i in 1:nrow(home_goal_data)) {
+    xg_timeline <- xg_timeline +
+      geom_mark_circle(
+        data = home_goal_data[i, ],
+        aes(
+          x = minute, y = cumxG,
+          label = paste0(player, ", ", minute, "\"")
+        ),
+        show.legend = FALSE,
+        expand = unit(.1, "mm"),
+        radius = unit(0, "mm"),
+        label.fontsize = 10,
+        label.family = "Montserrat", label.fontface = "bold",
+        label.fill = "#043d4c", label.colour = home_color,
+        label.buffer = unit(2, "mm"),
+        label.hjust = .25,
+        con.cap = unit(0, "mm"), con.border = "all",
+        con.type = "straight",
+        con.size = 0.5, con.colour = home_color
+      )
+  }
+}
+
+if (nrow(away_goal_data) != 0) {
+  for (i in 1:nrow(away_goal_data)) {
+    xg_timeline <- xg_timeline +
+      geom_mark_circle(
+        data = away_goal_data[i, ],
+        aes(
+          x = minute, y = cumxG,
+          label = paste0(player, ", ", minute, "\"")
+        ),
+        show.legend = FALSE,
+        expand = unit(.1, "mm"),
+        radius = unit(0, "mm"),
+        label.fontsize = 10,
+        label.family = "Montserrat", label.fontface = "bold",
+        label.fill = "#043d4c", label.colour = away_color,
+        label.buffer = unit(2, "mm"),
+        label.hjust = .25,
+        con.cap = unit(0, "mm"), con.border = "all",
+        con.type = "straight",
+        con.size = 0.5, con.colour = away_color
+      )
+  }
+}
+
+xg_timeline <- xg_timeline +
   scale_x_continuous(breaks = seq(
     0, ceiling(max(match_data$minute) / 5) * 5, 5
   )) +
@@ -131,8 +134,8 @@ xg_timeline <- ggplot() +
     ),
     subtitle = glue::glue("{match_date}"),
     x = "**Time**",
-    y = "**Expected Goals**"
-    # caption = glue::glue("<p>Data: understat.com<br>By: @rexarski</p>")
+    y = "**Expected Goals**",
+    caption = glue::glue("<p>Data: understat.com<br>By: @rexarski</p>")
   ) +
   ggthemes::theme_solarized_2(light = FALSE, base_family = "Roboto Condensed") +
   theme(
@@ -150,7 +153,15 @@ xg_timeline
 
 ggsave(
   plot = xg_timeline,
-  here::here("match-analysis/xg-timeline.png"),
+  here::here(glue::glue(
+    "match-analysis/",
+    match_date,
+    "-",
+    home_team,
+    "-vs-",
+    away_team,
+    "-xg-timeline.png"
+  )),
   height = 6, width = 10
 )
 
@@ -179,8 +190,8 @@ xg_court <- ggplot() +
     ), alpha = .9
   ) +
   labs(
-    title = glue::glue("<b style='color: white;'>Shots on field</b>")
-    # caption = glue::glue("<p>Data: understat.com<br>By: @rexarski</p>")
+    title = glue::glue("<b style='color: white;'>Shots on field</b>"),
+    caption = glue::glue("<p>Data: understat.com<br>By: @rexarski</p>")
   ) +
   ggthemes::theme_solarized_2(light = FALSE, base_family = "Roboto Condensed") +
   theme(
@@ -196,26 +207,35 @@ xg_court <- ggplot() +
   ) +
   coord_cartesian(expand = FALSE) +
   geom_richtext(aes(
-    x = 75, y = 20, label = glue::glue("{home_team} xG: {home_xg}"), fontface = "bold",
+    x = 75, y = 20, label = glue::glue("{home_team}<br>
+                                       xG: {home_xg}"), fontface = "bold",
     family = "Roboto Condensed"
   ),
   fill = NA, label.color = NA, # remove background and outline
   label.padding = grid::unit(rep(0, 4), "pt"), # remove padding
-  color = home_color, size = 12
+  color = home_color, size = 10
   ) +
   geom_richtext(aes(
-    x = 25, y = 20, label = glue::glue("{away_team} xG: {away_xg}"), fontface = "bold",
+    x = 25, y = 20, label = glue::glue("{away_team}<br>xG: {away_xg}"), fontface = "bold",
     family = "Roboto Condensed"
   ),
   fill = NA, label.color = NA, # remove background and outline
   label.padding = grid::unit(rep(0, 4), "pt"), # remove padding
-  color = away_color, size = 12
+  color = away_color, size = 10
   )
 xg_court
 
 ggsave(
   plot = xg_court,
-  here::here("match-analysis/xg-court.png"),
+  here::here(glue::glue(
+    "match-analysis/",
+    match_date,
+    "-",
+    home_team,
+    "-vs-",
+    away_team,
+    "-xg-court.png"
+  )),
   height = 7.5, width = 10
 )
 
@@ -258,37 +278,59 @@ xg_contr <- ggplot(xg_data, aes(
     family = "Montserrat", fontface = "bold.italic", colour = "#00303e", place = "center",
     grow = TRUE, reflow = TRUE, min.size = 0, padding.x = grid::unit(5, "mm"), padding.y = grid::unit(5, "mm")
   ) +
-    labs(
-        title = glue::glue("<b style='color: white;'>Players' xG contribution</b>"),
-        caption = glue::glue("<p>Data: understat.com<br>By: @rexarski</p>")
-    ) +
-    ggthemes::theme_solarized_2(light = FALSE, base_family = "Roboto Condensed") +
-    theme(
-        plot.title = element_markdown(face = "bold", size = 20, lineheight = 1.2),
-        plot.subtitle = element_markdown(face = "bold"),
-        plot.caption = element_markdown(margin = margin(t = 15)),
-        axis.title.x = element_markdown(),
-        axis.title.y = element_markdown(),
-        plot.title.position = "plot",
-        plot.margin = margin(25, 25, 10, 25),
-        legend.position = "none"
-    ) +
-    coord_cartesian(expand = TRUE)
+  labs(
+    title = glue::glue("<b style='color: white;'>Players' xG contribution</b>"),
+    caption = glue::glue("<p>Data: understat.com<br>By: @rexarski</p>")
+  ) +
+  ggthemes::theme_solarized_2(light = FALSE, base_family = "Roboto Condensed") +
+  theme(
+    plot.title = element_markdown(face = "bold", size = 20, lineheight = 1.2),
+    plot.subtitle = element_markdown(face = "bold"),
+    plot.caption = element_markdown(margin = margin(t = 15)),
+    axis.title.x = element_markdown(),
+    axis.title.y = element_markdown(),
+    plot.title.position = "plot",
+    plot.margin = margin(25, 25, 10, 25),
+    legend.position = "none"
+  ) +
+  coord_cartesian(expand = TRUE)
 
 xg_contr
 
 ggsave(
-    plot = xg_contr,
-    here::here("match-analysis/xg-contr.png"),
-    height = 6, width = 10
+  plot = xg_contr,
+  here::here(glue::glue(
+    "match-analysis/",
+    match_date,
+    "-",
+    home_team,
+    "-vs-",
+    away_team,
+    "-xg-contr.png"
+  )),
+  height = 6, width = 10
 )
 
 ############# patchwork #############
 
 pp <- xg_timeline / xg_court / xg_contr
+# pp <- xg_timeline + xg_court + xg_contr +
+#   plot_layout(design = c(
+#     area(t = 1, l = 1, b = 6, r = 10),
+#     area(t = 1, l = 11, b = 3, r = 16),
+#     area(t = 4, l = 11, b = 6, r = 16)
+#   ))
 pp
 ggsave(
-    plot = pp,
-    here::here("match-analysis/xg-complete.png"),
-    height = 19.5, width = 10
+  plot = pp,
+  here::here(glue::glue(
+    "match-analysis/",
+    match_date,
+    "-",
+    home_team,
+    "-vs-",
+    away_team,
+    "-xg-complete.png"
+  )),
+  height = 16, width = 10
 )
