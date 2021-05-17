@@ -1,8 +1,8 @@
 pacman::p_load(understatr, tidyverse, ggthemes, ggtext, glue, ggforce, here, ggsoccer, patchwork, treemapify)
 
-match_id <- 14727
-home_color <- "royalblue"
-away_color <- "#149557"
+match_id <- 14740
+home_color <- "#6CABDD"
+away_color <- "#FFCD00"
 
 ############# xg timeline #############
 
