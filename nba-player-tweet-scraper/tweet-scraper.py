@@ -64,39 +64,31 @@ def get_list_timeline(listid='17852612', mode='initial', sinceid='13448718821563
 
     tweets = []
     count = 0
-    batch = 0
 
-    while batch <= 50:
-        scraper_cursor = tweepy.Cursor(api.list_timeline, list_id=listid, since_id=sinceid,
-        include_rts=False).items()
+    scraper_cursor = tweepy.Cursor(api.list_timeline,
+        list_id=listid, since_id=sinceid, include_rts=False,
+        count=100).items()
 
-        for tweet in scraper_cursor:
-            try:
-                data = [tweet.created_at, tweet.id, tweet.text, tweet.user._json['screen_name'], tweet.user._json['name'], tweet.user._json['created_at'], tweet.entities['urls']]
-                data = tuple(data)
-                tweets.append(data)
-                # tweets.insert(0, data) # defacto reverse the list
-                count += 1
-                print("Tweet number: ", count)
-            except tweepy.TweepError as e:
-                print(e.reason)
-                continue
-            except StopIteration:
-                break
+    for tweet in scraper_cursor:
+        try:
+            data = [tweet.created_at, tweet.id, tweet.text, tweet.user._json['screen_name'], tweet.user._json['name'], tweet.user._json['created_at'], tweet.entities['urls']]
+            data = tuple(data)
+            tweets.append(data)
+            count += 1
+            print("Tweet number: ", count)
+        except tweepy.TweepError as e:
+            print(e.reason)
+            continue
+        except StopIteration:
+            break
 
-        batch += 1
-
-        df = pd.DataFrame(tweets, columns = ['created_at','tweet_id', 'tweet_text', 'screen_name', 'name',
+    df = pd.DataFrame(tweets, columns = ['created_at','tweet_id', 'tweet_text', 'screen_name', 'name',
             'account_creation_date', 'urls'])
 
-        if mode == 'initial':
-            if batch == 1:
-                df.to_csv(path_or_buf = '../data/nba-tweets/player-tweets.csv', mode='w', index=False)
-            else:
-                df.to_csv(path_or_buf = '../data/nba-tweets/player-tweets.csv', mode='a', index=False, header=False)
-        elif mode == 'update':
-            df.to_csv(path_or_buf = '../data/nba-tweets/player-tweets.csv', mode='a', header=False, index=False)
-
+    if mode == 'initial':
+        df.to_csv(path_or_buf = '../data/nba-tweets/player-tweets.csv', mode='w', index=False)
+    elif mode == 'update':
+        df.to_csv(path_or_buf = '../data/nba-tweets/player-tweets.csv', mode='a', header=False, index=False)
 
 get_nba_players()
 get_list_timeline(mode='initial')
