@@ -1,8 +1,9 @@
+# remotes::install_github('ewenme/understatr')
 pacman::p_load(understatr, tidyverse, ggthemes, ggtext, glue, ggforce, here, ggsoccer, patchwork, treemapify)
 
-match_id <- 14740
-home_color <- "#6CABDD"
-away_color <- "#FFCD00"
+match_id <- 16410
+home_color <- "#da020e"
+away_color <- "black"
 
 ############# xg timeline #############
 
@@ -53,7 +54,7 @@ xg_timeline <- ggplot() +
     data = filter(home, home$result == "Goal"),
     aes(x = minute, y = cumxG),
     shape = 21, color = home_color,
-    stroke = 1, fill = "#043d4c", size = 4
+    stroke = 1, size = 4 # fill = "#043d4c"
   ) +
   geom_step(
     data = away,
@@ -64,7 +65,7 @@ xg_timeline <- ggplot() +
     data = filter(away, away$result == "Goal"),
     aes(x = minute, y = cumxG),
     shape = 21, color = away_color,
-    stroke = 1, fill = "#043d4c", size = 4
+    stroke = 1, size = 4 # fill = "#043d4c",
   )
 
 if (nrow(home_goal_data) != 0) {
@@ -81,7 +82,7 @@ if (nrow(home_goal_data) != 0) {
         radius = unit(0, "mm"),
         label.fontsize = 10,
         label.family = "Montserrat", label.fontface = "bold",
-        label.fill = "#043d4c", label.colour = home_color,
+        label.colour = home_color, # label.fill = "#043d4c", 
         label.buffer = unit(5, "mm"),
         label.hjust = .25,
         con.cap = unit(0, "mm"), con.border = "all",
@@ -105,7 +106,7 @@ if (nrow(away_goal_data) != 0) {
         radius = unit(0, "mm"),
         label.fontsize = 10,
         label.family = "Montserrat", label.fontface = "bold",
-        label.fill = "#043d4c", label.colour = away_color,
+        label.colour = away_color, # label.fill = "#043d4c", 
         label.buffer = unit(5, "mm"),
         label.hjust = .25,
         con.cap = unit(0, "mm"), con.border = "all",
@@ -133,7 +134,7 @@ xg_timeline <- xg_timeline +
     y = "**Expected Goals**",
     caption = glue::glue("<p>Data: understat.com<br>By: @rexarski</p>")
   ) +
-  ggthemes::theme_solarized_2(light = FALSE, base_family = "Roboto Condensed") +
+  ggthemes::theme_fivethirtyeight(base_family = "Roboto Condensed") +
   theme(
     plot.title = element_markdown(face = "bold", size = 20, lineheight = 1.2),
     plot.subtitle = element_markdown(face = "bold"),
@@ -268,14 +269,14 @@ xg_contr <- ggplot(xg_data, aes(
       "grey75", fontface = "italic", min.size = 0
   ) +
   geom_treemap_text(
-    family = "Montserrat", fontface = "bold.italic", colour = "#00303e", place = "center",
+    family = "Montserrat", fontface = "bold.italic",  place = "center", colour = "white",
     grow = TRUE, reflow = TRUE, min.size = 0, padding.x = grid::unit(5, "mm"), padding.y = grid::unit(5, "mm")
   ) +
   labs(
-    title = glue::glue("<b style='color: white;'>Players' xG contribution</b>"),
+    title = glue::glue("<b style='color: grey40;'>Players' xG contribution</b>"),
     caption = glue::glue("<p>Data: understat.com<br>By: @rexarski</p>")
   ) +
-  ggthemes::theme_solarized_2(light = FALSE, base_family = "Roboto Condensed") +
+  ggthemes::theme_fivethirtyeight(base_family = "Roboto Condensed") +
   theme(
     plot.title = element_markdown(face = "bold", size = 20, lineheight = 1.2),
     plot.subtitle = element_markdown(face = "bold"),
