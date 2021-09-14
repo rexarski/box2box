@@ -5,7 +5,7 @@ on:
     - cron: '2 21 * * *'
 
 jobs:
-  canberramapbot-post:
+  reddit-scraper-daily-nba-top10:
     runs-on: macOS-latest
     steps:
       - uses: actions/checkout@v2
