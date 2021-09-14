@@ -1,0 +1,16 @@
+name: reddit-scraper
+
+on:
+  schedule:
+    - cron: '2 21 * * *'
+
+jobs:
+  canberramapbot-post:
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: r-lib/actions/setup-r@master
+      - name: Install curl and httr
+        run: Rscript -e 'install.packages(c("tidyverse", "httr", "jsonlite", "RedditExtractoR"), dependencies = TRUE)'
+      - name: Create and post tweet
+        run: Rscript /reddit-nba-scraper/cron-job.r
