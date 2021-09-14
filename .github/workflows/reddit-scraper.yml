@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: r-lib/actions/setup-r@master
-      - name: Install curl and httr
+      - name: Install related packages
         run: Rscript -e 'install.packages(c("tidyverse", "httr", "jsonlite", "RedditExtractoR"), dependencies = TRUE)'
-      - name: Create and post tweet
+      - name: Start to scrape data
         run: Rscript /reddit-nba-scraper/cron-job.r
