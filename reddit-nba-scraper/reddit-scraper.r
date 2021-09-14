@@ -21,20 +21,17 @@ access_token <- access_token_content$access_token
 access_token
 
 url <- "https://oauth.reddit.com/api/v1/me" # try api/v1/me
-# url <- "https://oauth.reddit.com/api/r/nba/top"
 
 authorization_bearer <- paste("Bearer ", access_token, sep="")
 result <- GET(url, 
-              user_agent("APP_NAME"), 
+              user_agent(app_name), 
               add_headers(Authorization = authorization_bearer))
 result_json <- rawToChar(result$content)
 result_content <- fromJSON(result_json)
 result_content
 
-top_nba_daily <- find_thread_urls(subreddit = "nba", sort_by = "top", period = "day")
-str(top_nba_daily)
-threads_contents <- get_thread_content(top_nba_daily$url[1:10]) # time-consuming
-str(threads_contents$threads) # thread metadata
-str(threads_contents$comments)
+##################### Without API #####################
 
-save(threads_contents, file = paste0("data/nba-reddit/", Sys.Date(), "-top10.RDS"))
+url2 <- "https://api.reddit.com/r/nba/top/?t=day"
+data <- fromJSON(url2)
+write_json(data, 'data/nba-reddit/test-run.json')
