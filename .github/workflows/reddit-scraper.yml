@@ -2,7 +2,7 @@ name: reddit-scraper
 
 on:
   schedule:
-    - cron: '2 21 * * *'
+    - cron: '15 14 * * *'
 
 jobs:
   reddit-scraper-daily-nba-top10:
