@@ -1,6 +1,6 @@
 # box2box: a repository of sports analytics experiments
 
-You can find some of the data sources [here](http://rqiu.georgetown.domains/02-gather.html).
+Currently working on NBA xT-model... 🚧
 
 ### Expected goals timeline, field shots and player contributions
 
