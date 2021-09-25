@@ -1,6 +1,7 @@
 library(RedditExtractoR)
 library(tidyverse)
 library(tidytext)
+library(tm)
 
 top_nba_daily <- find_thread_urls(subreddit = "nba", sort_by = "top", period = "day")
 str(top_nba_daily)
@@ -18,10 +19,25 @@ comments <- threads_contents$comments %>%
     select(-c(url, author, date, upvotes, downvotes, golds))
 rm(threads_contents)
 
-text_df <- tibble(line=1:(2*nrow(threads)+nrow(comments)),
-                  text=c(threads$title, threads$text, comments$comment))
+reddit_posts <- c(threads$title, threads$text, comments$comment)
+reddit_source <- VectorSource(reddit_posts)
+reddit_corpus <- VCorpus(reddit_source)
 
-tidy_text <- text_df %>%
+clean_corpus <- function(corpus) {
+    corpus <- tm_map(corpus, stripWhitespace)
+    corpus <- tm_map(corpus, removePunctuation)
+    corpus <- tm_map(corpus, content_transformer(tolower))
+    corpus <- tm_map(corpus, removeWords, stopwords("en"))
+    return(corpus)
+}
+
+clean_corpus <- clean_corpus(reddit_corpus)
+
+
+tidy_text <- tidy(clean_corpus, collapse = "\n")
+
+tidy_text <- tidy_text %>%
+    select(text) %>%
     unnest_tokens(word, text) %>%
     anti_join(stop_words)
 
