@@ -8,10 +8,11 @@ rm(list=ls())
 if (!requireNamespace('pacman', quietly = TRUE)){
     install.packages('pacman')
 }
-
+ 
 pacman::p_load(tidyverse, ggthemes, cluster, 
                ggrepel, ggpubr, factoextra, glue,
-               patchwork, gganimate, ggdendro)
+               patchwork, gganimate, ggdendro, NbClust,
+               class)
 
 set.seed(2021)
 
@@ -71,7 +72,7 @@ iter_kmeans <- function(data, kvalues, flag, caption) {
                 title = glue("NBA Players Stats K-means Clustering (k=", k, ")"),
                 subtitle = "2020-2021 Regular Season",
                 caption = caption)
-        ggsave(factormap, filename = glue("./nba-player-clustering/04-02-", flag, "-cluster-k", k, ".png"),
+        ggsave(factormap, filename = glue("./nba-player-clustering/05-02-", flag, "-cluster-k", k, ".png"),
                device = "png", height = 9, width = 11, dpi = 100)
     }
 }
@@ -102,85 +103,6 @@ iter_kmeans(data = dat2, kvalues = 2:5, flag = "limited",
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
 
-#####################################
-#     Determining the Optimal k     #
-#####################################
-
-elbow <- fviz_nbclust(
-    dat2, 
-    kmeans, 
-    k.max = 5,
-    method = "wss"
-) + 
-    # geom_vline(xintercept = 2, linetype = 2) +
-    theme_fivethirtyeight() +
-    theme(
-        text = element_text(family = "Roboto Condensed"),
-        title = element_text(size = 18),
-        plot.subtitle = element_text(size = 16),
-        plot.caption = element_text(size = 10),
-        axis.title = element_text(size = 14),
-        axis.text = element_text(size = 12),
-        panel.grid.minor.x = element_blank()
-    ) +
-    labs(
-        subtitle = "Elbow method",
-        caption = glue("
-                      Source: basketball-reference
-                      By: Rui Qiu (rq47)"))
-ggsave(elbow, filename = glue("./nba-player-clustering/04-03-optimal-k-elbow.png"),
-       device = "png", height = 9, width = 11, dpi = 100)
-
-silhouette <- fviz_nbclust(
-    dat2, 
-    kmeans, 
-    k.max = 5,
-    method = "silhouette"
-) + 
-    # geom_vline(xintercept = 2, linetype = 2) +
-    theme_fivethirtyeight() +
-    theme(
-        text = element_text(family = "Roboto Condensed"),
-        title = element_text(size = 18),
-        plot.subtitle = element_text(size = 16),
-        plot.caption = element_text(size = 10),
-        axis.title = element_text(size = 14),
-        axis.text = element_text(size = 12),
-        panel.grid.minor.x = element_blank()
-    ) +
-    labs(
-        subtitle = "Silhouette method",
-        caption = glue("
-                      Source: basketball-reference
-                      By: Rui Qiu (rq47)"))
-ggsave(silhouette, filename = glue("./nba-player-clustering/04-03-optimal-k-silhouette.png"),
-       device = "png", height = 9, width = 11, dpi = 100)
-
-gap_stat <- fviz_nbclust(
-    dat2, 
-    kmeans, 
-    k.max = 5,
-    method = "gap"
-) + 
-    # geom_vline(xintercept = 3, linetype = 2) +
-    theme_fivethirtyeight() +
-    theme(
-        text = element_text(family = "Roboto Condensed"),
-        title = element_text(size = 18),
-        plot.subtitle = element_text(size = 16),
-        plot.caption = element_text(size = 10),
-        axis.title = element_text(size = 14),
-        axis.text = element_text(size = 12),
-        panel.grid.minor.x = element_blank()
-    ) +
-    labs(
-        subtitle = "Gap statistic method",
-        caption = glue("
-                      Source: basketball-reference
-                      By: Rui Qiu (rq47)"))
-ggsave(gap_stat, filename = glue("./nba-player-clustering/04-03-optimal-k-gap-stat.png"),
-       device = "png", height = 9, width = 11, dpi = 100)
-
 ###################################
 #     Hierarchical Clustering     #
 ###################################
@@ -194,20 +116,12 @@ hc <- hclust(res.dist, method = "complete")
 # in order to colorize the clusters, we dont simple ggdendrogram,
 # we use data segments
 
-dendr <- dendro_data(hc, type = "triangle")
-clust <- cutree(hc, k=2) # find 2 clusters
-clust.df <- tibble(label = names(clust), cluster = factor(clust))
-# dendr[["labels"]] has the labels, merge with clust.df based on label column
-dendr[["labels"]] <- merge(dendr[["labels"]], clust.df, by = "label")
-gden <- ggplot() +
-    geom_segment(data=segment(dendr), aes(x=x, y=y, xend=xend, yend=yend)) +
-    geom_text(data=label(dendr), aes(x, y, label=label, hjust=0,
-                                     color=cluster), size=3) +
-    coord_flip() +
-    scale_y_reverse(expand=c(0.2, 0)) +
+gden <- fviz_dend(hc, k = 3, cex = .75, color_labels_by_k = TRUE) +
+    # coord_flip() +
+    # scale_y_reverse(expand=c(0.2, 0)) +
     theme_fivethirtyeight() +
     theme(
-        text = element_text(family = "Roboto Condensed"),
+        text = element_text(family = "Roboto Condensed", size = 3),
         title = element_text(size = 18),
         plot.subtitle = element_text(size = 16),
         plot.caption = element_text(size = 10),
@@ -225,7 +139,39 @@ gden <- ggplot() +
                       Source: basketball-reference
                       By: Rui Qiu (rq47)")) +
     theme_dendro()
-ggsave(gden, filename = glue("./nba-player-clustering/04-04-dendrogram-complete.png"),
+    
+# dendr <- dendro_data(hc, type = "triangle")
+# clust <- cutree(hc, k=3) # find 3 clusters
+# clust.df <- tibble(label = names(clust), cluster = factor(clust))
+# # dendr[["labels"]] has the labels, merge with clust.df based on label column
+# dendr[["labels"]] <- merge(dendr[["labels"]], clust.df, by = "label")
+# gden <- ggplot() +
+#     geom_segment(data=segment(dendr), aes(x=x, y=y, xend=xend, yend=yend)) +
+#     geom_text(data=label(dendr), aes(x, y, label=label, hjust=0,
+#                                      color=cluster), size=3) +
+#     coord_flip() +
+#     scale_y_reverse(expand=c(0.2, 0)) +
+#     theme_fivethirtyeight() +
+#     theme(
+#         text = element_text(family = "Roboto Condensed"),
+#         title = element_text(size = 18),
+#         plot.subtitle = element_text(size = 16),
+#         plot.caption = element_text(size = 10),
+#         axis.title = element_text(size = 14),
+#         axis.line.y=element_blank(),
+#         axis.ticks.y=element_blank(),
+#         axis.text.y=element_blank(),
+#         axis.title.y=element_blank(),
+#         panel.grid.minor.x = element_blank()
+#     ) +
+#     labs(
+#         title = "Dendrogram",
+#         subtitle = "Hierarchical clustering with complete linkage",
+#         caption = glue("
+#                       Source: basketball-reference
+#                       By: Rui Qiu (rq47)")) +
+#     theme_dendro()
+ggsave(gden, filename = glue("./nba-player-clustering/05-04-dendrogram-complete.png"),
        device = "png", height = 9, width = 11, dpi = 100)
 
 #######################
@@ -263,7 +209,7 @@ geuc <- fviz_dist(
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
-ggsave(geuc, filename = glue("./nba-player-clustering/04-05-dist-euc.png"),
+ggsave(geuc, filename = glue("./nba-player-clustering/05-05-dist-euc.png"),
        device = "png", height = 9, width = 11, dpi = 100)
 
 gman <- fviz_dist(
@@ -286,7 +232,7 @@ gman <- fviz_dist(
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
-ggsave(gman, filename = glue("./nba-player-clustering/04-05-dist-man.png"),
+ggsave(gman, filename = glue("./nba-player-clustering/05-05-dist-man.png"),
        device = "png", height = 9, width = 11, dpi = 100)
 
 gcos <- fviz_dist(
@@ -309,9 +255,205 @@ gcos <- fviz_dist(
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
-ggsave(gman, filename = glue("./nba-player-clustering/04-05-dist-cos.png"),
+ggsave(gman, filename = glue("./nba-player-clustering/05-05-dist-cos.png"),
        device = "png", height = 9, width = 11, dpi = 100)
+
+
+#####################################
+#     Determining the Optimal k     #
+#####################################
+
+elbow <- fviz_nbclust(
+    dat2, 
+    kmeans, 
+    k.max = 5,
+    method = "wss"
+) + 
+    # geom_vline(xintercept = 2, linetype = 2) +
+    theme_fivethirtyeight() +
+    theme(
+        text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 16),
+        plot.caption = element_text(size = 10),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.minor.x = element_blank()
+    ) +
+    labs(
+        subtitle = "Elbow method",
+        caption = glue("
+                      Source: basketball-reference
+                      By: Rui Qiu (rq47)"))
+ggsave(elbow, filename = glue("./nba-player-clustering/05-03-optimal-k-elbow.png"),
+       device = "png", height = 9, width = 11, dpi = 100)
+
+silhouette <- fviz_nbclust(
+    dat2, 
+    kmeans, 
+    k.max = 5,
+    method = "silhouette"
+) + 
+    # geom_vline(xintercept = 2, linetype = 2) +
+    theme_fivethirtyeight() +
+    theme(
+        text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 16),
+        plot.caption = element_text(size = 10),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.minor.x = element_blank()
+    ) +
+    labs(
+        subtitle = "Silhouette method",
+        caption = glue("
+                      Source: basketball-reference
+                      By: Rui Qiu (rq47)"))
+ggsave(silhouette, filename = glue("./nba-player-clustering/05-03-optimal-k-silhouette.png"),
+       device = "png", height = 9, width = 11, dpi = 100)
+
+gap_stat <- fviz_nbclust(
+    dat2, 
+    kmeans, 
+    k.max = 5,
+    method = "gap"
+) + 
+    # geom_vline(xintercept = 3, linetype = 2) +
+    theme_fivethirtyeight() +
+    theme(
+        text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 16),
+        plot.caption = element_text(size = 10),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.minor.x = element_blank()
+    ) +
+    labs(
+        subtitle = "Gap statistic method",
+        caption = glue("
+                      Source: basketball-reference
+                      By: Rui Qiu (rq47)"))
+ggsave(gap_stat, filename = glue("./nba-player-clustering/05-03-optimal-k-gap-stat.png"),
+       device = "png", height = 9, width = 11, dpi = 100)
+
+vote <- fviz_nbclust(NbClust(dat2, distance = "euclidean", min.nc = 2,
+                     max.nc = 5, method = "kmeans")) +
+    theme_fivethirtyeight() +
+    theme(
+        text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 16),
+        plot.caption = element_text(size = 10),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.minor.x = element_blank()
+    ) +
+    labs(
+        subtitle = "factoextra::fviz_nbclust()",
+        caption = glue("
+                      Source: basketball-reference
+                      By: Rui Qiu (rq47)"))
+ggsave(vote, filename = glue("./nba-player-clustering/05-03-optimal-k-vote.png"))
+
+# *** : The Hubert index is a graphical method of determining the number of clusters.
+# In the plot of Hubert index, we seek a significant knee that corresponds to a 
+# significant increase of the value of the measure i.e the significant peak in Hubert
+# index second differences plot. 
+# 
+# *** : The D index is a graphical method of determining the number of clusters. 
+# In the plot of D index, we seek a significant knee (the significant peak in Dindex
+#                                                     second differences plot) that corresponds to a significant increase of the value of
+# the measure. 
+# 
+# ******************************************************************* 
+#     * Among all indices:                                                
+#     * 7 proposed 2 as the best number of clusters 
+# * 8 proposed 3 as the best number of clusters 
+# * 4 proposed 4 as the best number of clusters 
+# * 4 proposed 5 as the best number of clusters 
+# 
+# ***** Conclusion *****                            
+#     
+#     * According to the majority rule, the best number of clusters is  3 
+# 
+# 
+# ******************************************************************* 
+#     Among all indices: 
+#     ===================
+#     * 2 proposed  0 as the best number of clusters
+# * 1 proposed  1 as the best number of clusters
+# * 7 proposed  2 as the best number of clusters
+# * 8 proposed  3 as the best number of clusters
+# * 4 proposed  4 as the best number of clusters
+# * 4 proposed  5 as the best number of clusters
+# 
+# Conclusion
+# =========================
+#     * According to the majority rule, the best number of clusters is  3 .
+    
 
 ###############################
 #     New Data Prediction     #
 ###############################
+
+# Adding some data points are always an imperfect move, since
+# clustering is unsupervised learning, it heavily relies on the "training" data. So here's the issue: if the newly added data are not very extreme, nor they are not very influential in quantity (say greater than 10% of the previous data), then they are good. Otherwise, we might want to recalculate the centroids.
+
+# https://stackoverflow.com/questions/21064315/how-do-i-predict-new-datas-cluster-after-clustering-training-data
+
+dat3 <- dat %>%
+    slice_max(MP, n = 55) %>%
+    select(`FG%`, `3PA`, `eFG%`, FT, TRB,
+           AST, STL, BLK, TOV, PTS) %>%
+    scale()
+
+# this actually shows nothing
+
+iter_kmeans(data = dat3, kvalues = 3, flag = "predictive",
+            caption = glue("
+                      * Top 55 players ordered by playing time.
+                      ** 51-55th players are added for prediction.
+                      Source: basketball-reference
+                      By: Rui Qiu (rq47)"))
+
+# we can use knn to decide the cluster of some new observations.
+
+groups <- cutree(hc, k = 3)
+table(groups)
+
+knnClust <- knn(train = dat3[1:50,], test = dat3[51:55,], k=1, cl =groups)
+knnClust
+
+pca1 <- data.frame(prcomp(dat3[1:50,], scale. = T, center = T)$x[,1:2], cluster = as_factor(groups), factor = "train")
+pca2 <- data.frame(prcomp(dat3[51:55,], scale. = T, center = T)$x[,1:2], cluster = as_factor(knnClust), factor = "test")
+pca <- rbind(pca1, pca2) %>%
+    as_tibble() %>%
+    mutate(factor = as_factor(factor),
+           player = rownames(dat3))
+
+ppred <- ggplot(pca, aes(x = PC1, y = PC2, color = cluster, alpha = factor, size = factor, label = player)) +
+    geom_point(shape=19) +
+    ggrepel::geom_text_repel() +
+    scale_alpha_discrete(range = c(.65, 1)) +
+    scale_size_discrete(range=c(.75, 1.5)) +
+    theme_fivethirtyeight() +
+    theme(
+        text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 16),
+        plot.caption = element_text(size = 10),
+        axis.title = element_text(size = 14),
+        axis.text = element_text(size = 12),
+        panel.grid.minor.x = element_blank()
+    ) +
+    labs(
+        title = "PCA Clustering",
+        subtitle = "with new observations introduced",
+        caption = glue("
+                      * Top 55 players ordered by playing time.
+                      ** 51-55th players are added for prediction.
+                      Source: basketball-reference
+                      By: Rui Qiu (rq47)"))
+ggsave(ppred, filename = glue("./nba-player-clustering/05-02-predictive-new-k3.png"))
