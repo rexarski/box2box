@@ -188,6 +188,8 @@ cosine.sim <- function(X) {
 }
 
 dist_cos <- cosine.sim(dat2)
+dist_can <- factorextra::get_dist(dat2, method = "canberra")
+
 
 geuc <- fviz_dist(
     dist_euc,
@@ -256,6 +258,29 @@ gcos <- fviz_dist(
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
 ggsave(gman, filename = glue("./nba-player-clustering/05-05-dist-cos.png"),
+       device = "png", height = 9, width = 11, dpi = 100)
+
+gcan <- fviz_dist(
+    dist_can,
+    gradient = list(low = "red", mid = "white", high = "blue")
+) +
+    theme_fivethirtyeight() +
+    theme(
+        text = element_text(family = "Roboto Condensed"),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 16),
+        plot.caption = element_text(size = 10),
+        axis.title = element_text(size = 14),
+        axis.text.y = element_text(size = 12),
+        axis.text.x = element_blank(),
+        panel.grid.minor.x = element_blank()
+    ) +
+    labs(
+        title = "Visualization of Manhattan Distances", 
+        caption = glue("
+                      Source: basketball-reference
+                      By: Rui Qiu (rq47)"))
+ggsave(gcan, filename = glue("./nba-player-clustering/05-05-dist-can.png"),
        device = "png", height = 9, width = 11, dpi = 100)
 
 
