@@ -214,9 +214,6 @@ dend2 <- as.dendrogram(hc2)
 dend_list <- dendlist(dend1, dend2)
 
 
-png(file = "./nba-player-clustering/05-04-tanglegram.png",
-    bg = "transparent",
-    width = 1100, height = 900)
 tanglegram(dend1, dend2,
            highlight_distinct_edges = FALSE,
            common_subtrees_color_lines = FALSE,
@@ -224,6 +221,9 @@ tanglegram(dend1, dend2,
            main = "Comparing two dendrograms",
            sub = paste("entanglement =",
                        round(entanglement(dend_list), 2)))
+png(file = "./nba-player-clustering/05-04-tanglegram.png",
+    bg = "transparent",
+    width = 1100, height = 900)
 dev.off()
 
 #######################
@@ -240,7 +240,7 @@ cosine.sim <- function(X) {
 }
 
 dist_cos <- cosine.sim(dat2)
-dist_can <- factorextra::get_dist(dat2, method = "canberra")
+dist_can <- factoextra::get_dist(dat2, method = "canberra")
 
 
 geuc <- fviz_dist(
@@ -259,7 +259,8 @@ geuc <- fviz_dist(
         panel.grid.minor.x = element_blank()
     ) +
     labs(
-        title = "Visualization of Euclidean Distances",
+        title = "Visualization of Distance (1)",
+        subtitle = "Euclidean Distances",
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
@@ -282,7 +283,8 @@ gman <- fviz_dist(
         panel.grid.minor.x = element_blank()
     ) +
     labs(
-        title = "Visualization of Manhattan Distances",
+        title = "Visualization of Distance (2)",
+        subtitle = "Manhattan Distances",
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
@@ -305,11 +307,12 @@ gcos <- fviz_dist(
         panel.grid.minor.x = element_blank()
     ) +
     labs(
-        title = "Visualization of Cosine Similarities",
+        title = "Visualization of Distance (3)",
+        subtitle = "Cosine Similarities",
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
-ggsave(gman, filename = glue("./nba-player-clustering/05-05-dist-cos.png"),
+ggsave(gcos, filename = glue("./nba-player-clustering/05-05-dist-cos.png"),
        device = "png", height = 9, width = 11, dpi = 100)
 
 gcan <- fviz_dist(
@@ -328,7 +331,8 @@ gcan <- fviz_dist(
         panel.grid.minor.x = element_blank()
     ) +
     labs(
-        title = "Visualization of Manhattan Distances",
+        title = "Visualization of Distance (4)",
+        subtitle = "Canberra Distances",
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
@@ -434,43 +438,6 @@ vote <- fviz_nbclust(NbClust(dat2, distance = "euclidean", min.nc = 2,
                       By: Rui Qiu (rq47)"))
 ggsave(vote, filename = glue("./nba-player-clustering/05-03-optimal-k-vote.png"))
 
-# *** : The Hubert index is a graphical method of determining the number of clusters.
-# In the plot of Hubert index, we seek a significant knee that corresponds to a
-# significant increase of the value of the measure i.e the significant peak in Hubert
-# index second differences plot.
-#
-# *** : The D index is a graphical method of determining the number of clusters.
-# In the plot of D index, we seek a significant knee (the significant peak in Dindex
-#                                                     second differences plot) that corresponds to a significant increase of the value of
-# the measure.
-#
-# *******************************************************************
-#     * Among all indices:
-#     * 7 proposed 2 as the best number of clusters
-# * 8 proposed 3 as the best number of clusters
-# * 4 proposed 4 as the best number of clusters
-# * 4 proposed 5 as the best number of clusters
-#
-# ***** Conclusion *****
-#
-#     * According to the majority rule, the best number of clusters is  3
-#
-#
-# *******************************************************************
-#     Among all indices:
-#     ===================
-#     * 2 proposed  0 as the best number of clusters
-# * 1 proposed  1 as the best number of clusters
-# * 7 proposed  2 as the best number of clusters
-# * 8 proposed  3 as the best number of clusters
-# * 4 proposed  4 as the best number of clusters
-# * 4 proposed  5 as the best number of clusters
-#
-# Conclusion
-# =========================
-#     * According to the majority rule, the best number of clusters is  3 .
-
-
 ###############################
 #     New Data Prediction     #
 ###############################
@@ -512,9 +479,9 @@ pca <- rbind(pca1, pca2) %>%
 
 ppred <- ggplot(pca, aes(x = PC1, y = PC2, color = cluster, alpha = factor, size = factor, label = player)) +
     geom_point(shape=19) +
-    ggrepel::geom_text_repel() +
-    scale_alpha_discrete(range = c(.65, 1)) +
-    scale_size_discrete(range=c(.75, 1.5)) +
+    ggrepel::geom_text_repel(force = 1.5) +
+    scale_alpha_discrete(range = c(.75, 1)) +
+    scale_size_discrete(range=c(2, 3.5)) +
     theme_fivethirtyeight() +
     theme(
         text = element_text(family = "Roboto Condensed"),
