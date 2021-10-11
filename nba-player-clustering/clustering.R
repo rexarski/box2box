@@ -8,11 +8,11 @@ rm(list=ls())
 if (!requireNamespace('pacman', quietly = TRUE)){
     install.packages('pacman')
 }
- 
-pacman::p_load(tidyverse, ggthemes, cluster, 
+
+pacman::p_load(tidyverse, ggthemes, cluster,
                ggrepel, ggpubr, factoextra, glue,
                patchwork, gganimate, ggdendro, NbClust,
-               class)
+               class, dendextend)
 
 set.seed(2021)
 
@@ -52,7 +52,7 @@ dat <- dat %>%
 iter_kmeans <- function(data, kvalues, flag, caption) {
     for (k in kvalues) {
         km <- kmeans(data, centers = k, nstart = 25)
-        
+
         factormap <- fviz_cluster(km, data = data,
                                   repel = TRUE, # avoid label overlapping
                                   geom = c("text", "point"),
@@ -107,14 +107,11 @@ iter_kmeans(data = dat2, kvalues = 2:5, flag = "limited",
 #     Hierarchical Clustering     #
 ###################################
 
-# compute distance matrix
+# compute euclidean distance matrix
 res.dist <- dist(dat2, method = "euclidean")
 
-# compute the hierarchical clusterings
+# compute the hierarchical clusterings with complete linkage
 hc <- hclust(res.dist, method = "complete")
-
-# in order to colorize the clusters, we dont simple ggdendrogram,
-# we use data segments
 
 gden <- fviz_dend(hc, k = 3, cex = .75, color_labels_by_k = TRUE) +
     # coord_flip() +
@@ -133,13 +130,47 @@ gden <- fviz_dend(hc, k = 3, cex = .75, color_labels_by_k = TRUE) +
         panel.grid.minor.x = element_blank()
     ) +
     labs(
-        title = "Dendrogram",
-        subtitle = "Hierarchical clustering with complete linkage",
+        title = "Hierarchical clustering with complete linkage",
+        subtitle = "using Euclidean distance",
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)")) +
     theme_dendro()
-    
+
+# compute pearson distance matrix
+res.dist2 <- dist(dat2, method = "minkowski")
+
+# compute the hierarchical clusterings
+hc2 <- hclust(res.dist2, method = "ward.D2")
+
+gden2 <- fviz_dend(hc2, k = 3, cex = .75, color_labels_by_k = TRUE) +
+    # coord_flip() +
+    # scale_y_reverse(expand=c(0.2, 0)) +
+    theme_fivethirtyeight() +
+    theme(
+        text = element_text(family = "Roboto Condensed", size = 3),
+        title = element_text(size = 18),
+        plot.subtitle = element_text(size = 16),
+        plot.caption = element_text(size = 10),
+        axis.title = element_text(size = 14),
+        axis.line.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.title.y=element_blank(),
+        panel.grid.minor.x = element_blank()
+    ) +
+    labs(
+        title = "Hierarchical clustering with ward.D2 linkage",
+        subtitle = "using Minkowski distance",
+        caption = glue("
+                      Source: basketball-reference
+                      By: Rui Qiu (rq47)")) +
+    theme_dendro()
+
+
+# in order to colorize the clusters, we dont simple ggdendrogram,
+# we use data segments
+
 # dendr <- dendro_data(hc, type = "triangle")
 # clust <- cutree(hc, k=3) # find 3 clusters
 # clust.df <- tibble(label = names(clust), cluster = factor(clust))
@@ -171,8 +202,29 @@ gden <- fviz_dend(hc, k = 3, cex = .75, color_labels_by_k = TRUE) +
 #                       Source: basketball-reference
 #                       By: Rui Qiu (rq47)")) +
 #     theme_dendro()
+
 ggsave(gden, filename = glue("./nba-player-clustering/05-04-dendrogram-complete.png"),
        device = "png", height = 9, width = 11, dpi = 100)
+ggsave(gden2, filename = glue("./nba-player-clustering/05-04-dendrogram-ward-2d.png"),
+       device = "png", height = 9, width = 11, dpi = 100)
+
+# comparing two dendrograms
+dend1 <- as.dendrogram(hc)
+dend2 <- as.dendrogram(hc2)
+dend_list <- dendlist(dend1, dend2)
+
+
+png(file = "./nba-player-clustering/05-04-tanglegram.png",
+    bg = "transparent",
+    width = 1100, height = 900)
+tanglegram(dend1, dend2,
+           highlight_distinct_edges = FALSE,
+           common_subtrees_color_lines = FALSE,
+           common_subtrees_color_branches = TRUE,
+           main = "Comparing two dendrograms",
+           sub = paste("entanglement =",
+                       round(entanglement(dend_list), 2)))
+dev.off()
 
 #######################
 #     3 Distances     #
@@ -207,7 +259,7 @@ geuc <- fviz_dist(
         panel.grid.minor.x = element_blank()
     ) +
     labs(
-        title = "Visualization of Euclidean Distances", 
+        title = "Visualization of Euclidean Distances",
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
@@ -230,7 +282,7 @@ gman <- fviz_dist(
         panel.grid.minor.x = element_blank()
     ) +
     labs(
-        title = "Visualization of Manhattan Distances", 
+        title = "Visualization of Manhattan Distances",
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
@@ -276,7 +328,7 @@ gcan <- fviz_dist(
         panel.grid.minor.x = element_blank()
     ) +
     labs(
-        title = "Visualization of Manhattan Distances", 
+        title = "Visualization of Manhattan Distances",
         caption = glue("
                       Source: basketball-reference
                       By: Rui Qiu (rq47)"))
@@ -289,11 +341,11 @@ ggsave(gcan, filename = glue("./nba-player-clustering/05-05-dist-can.png"),
 #####################################
 
 elbow <- fviz_nbclust(
-    dat2, 
-    kmeans, 
+    dat2,
+    kmeans,
     k.max = 5,
     method = "wss"
-) + 
+) +
     # geom_vline(xintercept = 2, linetype = 2) +
     theme_fivethirtyeight() +
     theme(
@@ -314,11 +366,11 @@ ggsave(elbow, filename = glue("./nba-player-clustering/05-03-optimal-k-elbow.png
        device = "png", height = 9, width = 11, dpi = 100)
 
 silhouette <- fviz_nbclust(
-    dat2, 
-    kmeans, 
+    dat2,
+    kmeans,
     k.max = 5,
     method = "silhouette"
-) + 
+) +
     # geom_vline(xintercept = 2, linetype = 2) +
     theme_fivethirtyeight() +
     theme(
@@ -339,11 +391,11 @@ ggsave(silhouette, filename = glue("./nba-player-clustering/05-03-optimal-k-silh
        device = "png", height = 9, width = 11, dpi = 100)
 
 gap_stat <- fviz_nbclust(
-    dat2, 
-    kmeans, 
+    dat2,
+    kmeans,
     k.max = 5,
     method = "gap"
-) + 
+) +
     # geom_vline(xintercept = 3, linetype = 2) +
     theme_fivethirtyeight() +
     theme(
@@ -383,29 +435,29 @@ vote <- fviz_nbclust(NbClust(dat2, distance = "euclidean", min.nc = 2,
 ggsave(vote, filename = glue("./nba-player-clustering/05-03-optimal-k-vote.png"))
 
 # *** : The Hubert index is a graphical method of determining the number of clusters.
-# In the plot of Hubert index, we seek a significant knee that corresponds to a 
+# In the plot of Hubert index, we seek a significant knee that corresponds to a
 # significant increase of the value of the measure i.e the significant peak in Hubert
-# index second differences plot. 
-# 
-# *** : The D index is a graphical method of determining the number of clusters. 
+# index second differences plot.
+#
+# *** : The D index is a graphical method of determining the number of clusters.
 # In the plot of D index, we seek a significant knee (the significant peak in Dindex
 #                                                     second differences plot) that corresponds to a significant increase of the value of
-# the measure. 
-# 
-# ******************************************************************* 
-#     * Among all indices:                                                
-#     * 7 proposed 2 as the best number of clusters 
-# * 8 proposed 3 as the best number of clusters 
-# * 4 proposed 4 as the best number of clusters 
-# * 4 proposed 5 as the best number of clusters 
-# 
-# ***** Conclusion *****                            
-#     
-#     * According to the majority rule, the best number of clusters is  3 
-# 
-# 
-# ******************************************************************* 
-#     Among all indices: 
+# the measure.
+#
+# *******************************************************************
+#     * Among all indices:
+#     * 7 proposed 2 as the best number of clusters
+# * 8 proposed 3 as the best number of clusters
+# * 4 proposed 4 as the best number of clusters
+# * 4 proposed 5 as the best number of clusters
+#
+# ***** Conclusion *****
+#
+#     * According to the majority rule, the best number of clusters is  3
+#
+#
+# *******************************************************************
+#     Among all indices:
 #     ===================
 #     * 2 proposed  0 as the best number of clusters
 # * 1 proposed  1 as the best number of clusters
@@ -413,11 +465,11 @@ ggsave(vote, filename = glue("./nba-player-clustering/05-03-optimal-k-vote.png")
 # * 8 proposed  3 as the best number of clusters
 # * 4 proposed  4 as the best number of clusters
 # * 4 proposed  5 as the best number of clusters
-# 
+#
 # Conclusion
 # =========================
 #     * According to the majority rule, the best number of clusters is  3 .
-    
+
 
 ###############################
 #     New Data Prediction     #
