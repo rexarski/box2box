@@ -22,17 +22,6 @@ dfm <- df$Text %>%
     quanteda::dfm(verbose = FALSE)
 
 td <- tidy(dfm)
-# td <- td %>%
-#     mutate(source=as.integer(str_extract(document, "\\d+"))) %>%
-#     mutate(source=case_when(
-#         source <= 100 ~ "ESPN",
-#         (source <= 200 & source > 100) ~ "MacRumors",
-#         (source <= 300 & source > 200) ~ "NASA",
-#         (source <= 400 & source > 300) ~ "Polygon"
-#     )) %>%
-#     select(-document) %>%
-#     relocate(source) %>%
-#     rename(document = source)
 td
 
 tf_idf <- td %>%
