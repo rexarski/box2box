@@ -83,7 +83,10 @@ shot_rules <- apriori(shot_trans,
                           rhs = madeItems
                       ))
 
-saveRDS(shot_rules, "nba-xT-model/shot_rules.RDS")
+saveRDS(shot_rules, "nba-xT-model/shot-rules.RDS")
+
+write_csv(DATAFRAME(shot_rules),
+          "nba-xT-model/06-arm-shot-rules.csv")
 
 inspect(head(shot_rules, by = "support", n = 15))
 inspect(head(shot_rules, by = "confidence", n = 15))
@@ -137,10 +140,6 @@ dev.off()
 # interactive with all rules (only top 100 plotted though)
 plot(shot_rules, method = "graph", control = list(verbose = FALSE),
      measure = "lift", shading = "confidence", engine = "htmlwidget")
-
-# interactive, readable by GraphML tools
-saveAsGraph(shot_rules, file = "nba-xT-model/igraph-rules.graphml")
-
 
 ########################################################
 #     data preparation for viz with other packages     #
