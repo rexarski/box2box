@@ -1,0 +1,16 @@
+items,support,transIdenticalToItemsets,count
+"{player=Stephen Curry,period=1,shottype=Arc3,value=3,and1=not_and1,made=not_made}",8.149226088106893e-4,154,154
+"{player=Stephen Curry,period=3,shottype=Arc3,value=3,and1=not_and1,made=not_made}",7.884640825506019e-4,149,149
+"{player=Damian Lillard,period=3,shottype=Arc3,value=3,and1=not_and1,made=not_made}",7.249636195263923e-4,137,137
+"{player=Zion Williamson,period=1,shottype=AtRim,value=2,and1=not_and1,made=is_made}",6.932133880142876e-4,131,131
+"{player=Zion Williamson,period=2,shottype=AtRim,value=2,and1=not_and1,made=is_made}",6.40296335494113e-4,121,121
+"{player=Stephen Curry,period=3,shottype=Arc3,value=3,and1=not_and1,made=is_made}",6.244212197380605e-4,118,118
+"{player=Zion Williamson,period=3,shottype=AtRim,value=2,and1=not_and1,made=is_made}",5.873792829739384e-4,111,111
+"{player=Damian Lillard,period=1,shottype=Arc3,value=3,and1=not_and1,made=not_made}",5.767958724699035e-4,109,109
+"{player=Zion Williamson,period=4,shottype=AtRim,value=2,and1=not_and1,made=is_made}",5.556290514618336e-4,105,105
+"{player=Buddy Hield,period=3,shottype=Arc3,value=3,and1=not_and1,made=not_made}",5.397539357057812e-4,102,102
+"{player=Giannis Antetokounmpo,period=1,shottype=AtRim,value=2,and1=not_and1,made=is_made}",5.397539357057812e-4,102,102
+"{player=Giannis Antetokounmpo,period=3,shottype=AtRim,value=2,and1=not_and1,made=is_made}",5.185871146977113e-4,98,98
+"{player=Buddy Hield,period=4,shottype=Arc3,value=3,and1=not_and1,made=not_made}",5.132954094456939e-4,97,97
+"{player=Buddy Hield,period=1,shottype=Arc3,value=3,and1=not_and1,made=not_made}",5.080037041936764e-4,96,96
+"{player=Luka Doncic,period=3,shottype=Arc3,value=3,and1=not_and1,made=not_made}",5.080037041936764e-4,96,96

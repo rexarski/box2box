@@ -1,0 +1,16 @@
+LHS,RHS,support,confidence,coverage,lift,count
+"{player=Zion Williamson,period=2,shottype=AtRim,value=2,and1=is_and1}",{made=is_made},1.1641751554438418e-4,1,1.1641751554438418e-4,2.142889541542404,22
+"{player=Giannis Antetokounmpo,period=4,shottype=AtRim,value=2,and1=is_and1}",{made=is_made},1.2170922079640164e-4,1,1.2170922079640164e-4,2.142889541542404,23
+"{player=Giannis Antetokounmpo,period=3,shottype=AtRim,value=2,and1=is_and1}",{made=is_made},1.1112581029236671e-4,1,1.1112581029236671e-4,2.142889541542404,21
+"{player=Stanley Johnson,period=2,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},1.1112581029236671e-4,0.9545454545454546,1.1641751554438417e-4,1.7897490502116056,21
+"{player=Kevin Durant,period=3,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.3229263130043657e-4,0.9259259259259259,1.4287604180447148e-4,1.9841569829096335,25
+"{player=Onyeka Okongwu,period=1,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.270009260484191e-4,0.9230769230769231,1.37584336552454e-4,1.9780518845006811,24
+"{player=Andre Iguodala,period=2,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},1.1112581029236671e-4,0.9130434782608695,1.2170922079640164e-4,1.7119338741154484,21
+"{player=Danuel House Jr.,period=3,shottype=Corner3,value=3,and1=not_and1}",{made=not_made},1.005423997883318e-4,0.9047619047619048,1.1112581029236672e-4,1.6964061292255124,19
+"{player=Daniel Theis,period=4,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},1.005423997883318e-4,0.9047619047619048,1.1112581029236672e-4,1.6964061292255124,19
+"{player=Jerami Grant,period=4,shottype=ShortMidRange,value=2,and1=not_and1}",{made=not_made},1.270009260484191e-4,0.8888888888888888,1.4287604180447148e-4,1.6666446181864685,24
+"{player=James Wiseman,period=3,shottype=ShortMidRange,value=2,and1=not_and1}",{made=not_made},1.1641751554438418e-4,0.88,1.3229263130043657e-4,1.6499781720046036,22
+"{player=Miles Bridges,period=4,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.7991797856859373e-4,0.8717948717948718,2.0637650482868103e-4,1.868160113139532,34
+"{player=Obi Toppin,period=2,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},1.0583410504034925e-4,0.8695652173913043,1.2170922079640164e-4,1.6304132134432843,20
+"{player=Michael Carter-Williams,period=2,shottype=ShortMidRange,value=2,and1=not_and1}",{made=not_made},1.0583410504034925e-4,0.8695652173913043,1.2170922079640164e-4,1.6304132134432843,20
+"{player=Monte Morris,period=2,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.005423997883318e-4,0.8636363636363636,1.1641751554438418e-4,1.8506773313320763,19

@@ -1,0 +1,16 @@
+LHS,RHS,support,confidence,coverage,lift,count
+"{player=Zion Williamson,period=2,shottype=AtRim,value=2,and1=is_and1}",{made=is_made},1.1641751554438418e-4,1,1.1641751554438418e-4,2.142889541542404,22
+"{player=Giannis Antetokounmpo,period=4,shottype=AtRim,value=2,and1=is_and1}",{made=is_made},1.2170922079640164e-4,1,1.2170922079640164e-4,2.142889541542404,23
+"{player=Giannis Antetokounmpo,period=3,shottype=AtRim,value=2,and1=is_and1}",{made=is_made},1.1112581029236671e-4,1,1.1112581029236671e-4,2.142889541542404,21
+"{player=Kevin Durant,period=3,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.3229263130043657e-4,0.9259259259259259,1.4287604180447148e-4,1.9841569829096335,25
+"{player=Onyeka Okongwu,period=1,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.270009260484191e-4,0.9230769230769231,1.37584336552454e-4,1.9780518845006811,24
+"{player=Miles Bridges,period=4,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.7991797856859373e-4,0.8717948717948718,2.0637650482868103e-4,1.868160113139532,34
+"{player=Monte Morris,period=2,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.005423997883318e-4,0.8636363636363636,1.1641751554438418e-4,1.8506773313320763,19
+"{player=Taj Gibson,period=2,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.5875115756052387e-4,0.8571428571428571,1.852096838206112e-4,1.8367624641792035,30
+"{player=Kawhi Leonard,period=1,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},2.4341844159280328e-4,0.8518518518518519,2.8575208360894297e-4,1.825424424276863,46
+"{player=Kristaps Porzingis,period=1,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},2.116682100806985e-4,0.851063829787234,2.487101468448207e-4,1.823735780036089,40
+"{player=Jamal Murray,period=1,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.7991797856859373e-4,0.85,2.116682100806985e-4,1.8214561103110436,34
+"{player=DeAndre' Bembry,period=1,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.1112581029236671e-4,0.84,1.3229263130043657e-4,1.8000272148956196,21
+"{player=Serge Ibaka,period=2,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.1112581029236671e-4,0.84,1.3229263130043657e-4,1.8000272148956196,21
+"{player=Michael Porter Jr.,period=4,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},1.6404286281254134e-4,0.8378378378378378,1.9579309432464612e-4,1.7953939402112036,31
+"{player=DeAndre Jordan,period=1,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},3.227940203730652e-4,0.8356164383561644,3.8629448339727476e-4,1.7906337264943377,61

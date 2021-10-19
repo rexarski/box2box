@@ -1,0 +1,16 @@
+LHS,RHS,support,confidence,coverage,lift,count
+"{player=Stephen Curry,period=1,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},8.149226088106893e-4,0.6234817813765182,0.0013070511972483134,1.1690128749020472,154
+"{player=Stephen Curry,period=3,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},7.884640825506019e-4,0.5580524344569289,0.0014128853022886624,1.0463344723726846,149
+"{player=Damian Lillard,period=3,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},7.249636195263923e-4,0.5956521739130435,0.0012170922079640164,1.1168330512086497,137
+"{player=Zion Williamson,period=1,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},6.932133880142876e-4,0.6822916666666666,0.001016007408387353,1.4620756767815362,131
+"{player=Zion Williamson,period=2,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},6.40296335494113e-4,0.6402116402116402,0.0010001322926313004,1.3719028281832324,121
+"{player=Zion Williamson,period=3,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},5.873792829739384e-4,0.6098901098901099,9.630903558671782e-4,1.3069271379736642,111
+"{player=Damian Lillard,period=1,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},5.767958724699035e-4,0.5505050505050505,0.0010477576398994577,1.0321833146723014,109
+"{player=Zion Williamson,period=4,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},5.556290514618336e-4,0.6481481481481481,8.57256250826829e-4,1.3889098880367434,105
+"{player=Buddy Hield,period=3,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},5.397539357057812e-4,0.5795454545454546,0.00093134012435507345,1.086633351914189,102
+"{player=Giannis Antetokounmpo,period=1,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},5.397539357057812e-4,0.8292682926829268,6.50879745998148e-4,1.7770303515229695,102
+"{player=Giannis Antetokounmpo,period=3,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},5.185871146977113e-4,0.7205882352941176,7.196719142743749e-4,1.5441409931702617,98
+"{player=Buddy Hield,period=4,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},5.132954094456939e-4,0.751937984496124,6.826299775102527e-4,1.409865069454251,97
+"{player=Buddy Hield,period=1,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},5.080037041936764e-4,0.5581395348837209,9.101733033470036e-4,1.0464977835124336,96
+"{player=Luka Doncic,period=3,shottype=Arc3,value=3,and1=not_and1}",{made=not_made},5.080037041936764e-4,0.6193548387096774,8.202143140627066e-4,1.1612749597686363,96
+"{player=Clint Capela,period=2,shottype=AtRim,value=2,and1=not_and1}",{made=is_made},4.974202936896414e-4,0.6394557823129252,7.778806720465668e-4,1.3702831081971838,94

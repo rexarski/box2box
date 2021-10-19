@@ -63,7 +63,8 @@ frequentItems <- eclat(shot_trans,
                                         minlen = 6))
 
 inspect(head(frequentItems, by = "support", n = 15))
-
+write_csv(DATAFRAME(head(frequentItems, by = "support", n = 15)),
+          "nba-xT-model/06-arm-frequent-items.csv")
 
 # for rhs: if not limited, the results are just not meaningful enough to be interpreted
 
@@ -87,6 +88,13 @@ saveRDS(shot_rules, "nba-xT-model/shot_rules.RDS")
 inspect(head(shot_rules, by = "support", n = 15))
 inspect(head(shot_rules, by = "confidence", n = 15))
 inspect(head(shot_rules, by = "lift", n = 15))
+
+write_csv(DATAFRAME(head(shot_rules, by = "support", n = 15)),
+          "nba-xT-model/06-arm-top-supp-rules.csv")
+write_csv(DATAFRAME(head(shot_rules, by = "confidence", n = 15)),
+          "nba-xT-model/06-arm-top-conf-rules.csv")
+write_csv(DATAFRAME(head(shot_rules, by = "lift", n = 15)),
+          "nba-xT-model/06-arm-top-lift-rules.csv")
 
 # additional rules
 
