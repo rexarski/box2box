@@ -1,6 +1,6 @@
-###################
-#     set up      #
-###################
+##################
+#     setup      #
+##################
 
 gc()
 rm(list=ls())
@@ -82,6 +82,8 @@ shot_rules <- apriori(shot_trans,
                           rhs = madeItems
                       ))
 
+saveRDS(shot_rules, "nba-xT-model/shot_rules.RDS")
+
 inspect(head(shot_rules, by = "support", n = 15))
 inspect(head(shot_rules, by = "confidence", n = 15))
 inspect(head(shot_rules, by = "lift", n = 15))
@@ -98,6 +100,12 @@ zion_rules <- apriori(shot_trans,
                           lhs = 'player=Zion Williamson'
                       ))
 inspect(zion_rules)
+
+#######################
+#     Network Viz     #
+#######################
+
+# Actually got better plan for network data, but here need to focus on visualize 
 
 subrules1 <- head(shot_rules, by = "support", n = 50)
 subrules2 <- head(shot_rules, by = "confidence", n = 50)
