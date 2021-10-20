@@ -128,12 +128,9 @@ subrules3 <- head(shot_rules, by = "lift", n = 50)
 ##################
 
 # static
-png(file="nba-xT-model/06-arm-igraph.png", width=1100, height=900)
-plot(subrules3, method = "graph", control = list(verbose = FALSE))
-dev.off()
 
-png(file="nba-xT-model/06-arm-igraph-2.png", width=1100, height=900)
-plot(subrules3, method = "graph", control = list(verbose = FALSE),
+png(file="nba-xT-model/06-arm-igraph.png", width=1100, height=900)
+plot(subrules1, method = "graph", control = list(verbose = FALSE),
      measure = "lift", shading = "confidence") # static
 dev.off()
 
@@ -145,37 +142,74 @@ plot(shot_rules, method = "graph", control = list(verbose = FALSE),
 #     data preparation for viz with other packages     #
 ########################################################
 
-df_rules <- DATAFRAME(subrules3) %>%
+df_rules <- DATAFRAME(shot_rules) %>%
     rowid_to_column("rules") %>%
     mutate(rules = paste("Rules", rules),
            RHS = str_remove_all(string = RHS, pattern = "[{}]"))
 df_rules
 
-df_items <- df_rules %>%
+ZvG_rules <- df_rules %>%
+    filter(str_detect(LHS, "Zion") | str_detect(LHS, "Giannis"))
+
+Q4_rules <- df_rules %>%
+    filter(str_detect(LHS, "period=4") & RHS=="made=is_made") %>%
+    arrange(desc(count)) %>%
+    top_n(50)
+
+ZvG_items <- ZvG_rules %>%
     mutate(LHS = str_remove_all(string = LHS, pattern = "[{}]")) %>%
     separate(col = LHS, into = c(paste0("item_", 1:3)),
-             sep = ",") %>% pivot_longer(cols = c(item_1, item_2, item_3), names_to = "antecedent", values_to = "item") %>%
+             sep = ",") %>%
+    pivot_longer(cols = c(item_1, item_2, item_3), names_to = "antecedent", values_to = "item") %>%
     select(rules, antecedent, item, RHS, everything()) %>%
     filter(is.na(item) == FALSE)
-df_items
+ZvG_items
 
-nodes <- data.frame(name = unique(c(df_items$item, df_items$RHS, df_items$rules))) %>%
-    rowid_to_column("id") %>% mutate(group = ifelse(str_detect(name, "Rules"), "A", "B"), label = name, value = c(rep(NA, n_distinct(c(df_items$item, df_items$RHS))), df_rules$lift), support = c(rep(NA, n_distinct(c(df_items$item, df_items$RHS))), df_rules$support), confidence = c(rep(NA, n_distinct(c(df_items$item, df_items$RHS))), df_rules$confidence), shape = ifelse(group == "A", "circle", "box"), color = ifelse(group == "A", "lightblue", "lightgreen"), title = ifelse(test = group == "A", yes = paste(name, "<br> Lift:", round(value, 2), "<br> Confidence:", round(confidence, 2), "<br> Support:", round(support, 2)), no = as.character(name)))
-nodes
+Q4_items <- Q4_rules %>%
+    mutate(LHS = str_remove_all(string = LHS, pattern = "[{}]")) %>%
+    separate(col = LHS, into = c(paste0("item_", 1:3)),
+             sep = ",") %>%
+    pivot_longer(cols = c(item_1, item_2, item_3), names_to = "antecedent", values_to = "item") %>%
+    select(rules, antecedent, item, RHS, everything()) %>%
+    filter(is.na(item) == FALSE)
+Q4_items
 
-edges <- data.frame(from = df_items$item, to = df_items$rules) %>%
-    bind_rows(data.frame(from = df_rules$rules, to = df_rules$RHS)) %>%
-    left_join(nodes, by = c(from = "name")) %>% select(id, to) %>%
-    rename(from = id) %>% left_join(nodes, by = c(to = "name")) %>%
-    select(from, id) %>%
-    rename(to = id) %>%
-    mutate(color = ifelse(to <= 33, "red", "lightgreen"))
-edges
+gen_nodes_n_edges <- function(df_rules, df_items, degree_threshold=20) {
+    
+    nodes <- data.frame(name = unique(c(df_items$item, df_items$RHS, df_items$rules))) %>%
+        rowid_to_column("id") %>%
+        mutate(group = ifelse(str_detect(name, "Rules"), "A", "B"),
+               label = name,
+               value = c(rep(NA, n_distinct(c(df_items$item, df_items$RHS))), df_rules$lift),
+               support = c(rep(NA, n_distinct(c(df_items$item, df_items$RHS))), df_rules$support),
+               confidence = c(rep(NA, n_distinct(c(df_items$item, df_items$RHS))),df_rules$confidence),
+               shape = ifelse(group == "A", "circle", "box"),
+               color = ifelse(group == "A", "lightblue", "lightgreen"),
+               title = ifelse(test = group == "A", yes = paste(
+                   name, "<br> Lift:", round(value, 2), "<br> Confidence:", 
+                   round(confidence, 2), "<br> Support:", round(support, 2)
+                   ), no = as.character(name)))
+    
+    edges <- data.frame(from = df_items$item, to = df_items$rules) %>%
+        bind_rows(data.frame(from = df_rules$rules, to = df_rules$RHS)) %>%
+        left_join(nodes, by = c(from = "name")) %>% select(id, to) %>%
+        rename(from = id) %>% left_join(nodes, by = c(to = "name")) %>%
+        select(from, id) %>%
+        rename(to = id) %>%
+        mutate(color = ifelse(to <= degree_threshold, "red", "lightgreen"))
+    
+    return(list(nodes = nodes, edges = edges))
+}
 
 
 #####################
 #     networkD3     #
 #####################
+
+# Q4 clutch
+
+nodes <- gen_nodes_n_edges(Q4_rules, Q4_items, degree_threshold = 3)[[1]]
+edges <- gen_nodes_n_edges(Q4_rules, Q4_items, degree_threshold = 3)[[2]]
 
 nodes_d3 <- mutate(nodes, id = id - 1)
 edges_d3 <- mutate(edges, from = from - 1, to = to - 1) %>%
@@ -194,16 +228,27 @@ forceNetwork(Links = edges_d3, Nodes = nodes_d3, Source = "from",
 #     VisNetwork     #
 ######################
 
+# Zion vs Giannis
+
+nodes <- gen_nodes_n_edges(ZvG_rules, ZvG_items)[[1]]
+edges <- gen_nodes_n_edges(ZvG_rules, ZvG_items)[[2]]
+
 visNetwork(nodes = nodes, edges = edges, height = "500px", width = "100%") %>%
     visEdges(arrows = "to") %>%
     visOptions(highlightNearest = T) %>%
-    visInteraction(tooltipStyle = "position: fixed; visibility: hidden; padding: 5px; white-space: nowrap;
-    font-size: 18px; color: black; background-color: white; border-color: orange")
+    visInteraction(tooltipStyle = "position: fixed; visibility: hidden; 
+                   padding: 5px; white-space: nowrap;
+                   font-size: 18px; color: black;
+                   background-color: white; border-color: orange")
 
 
 ##################
 #     Sankey     #
 ##################
+
+nodes_d3 <- mutate(nodes, id = id - 1)
+edges_d3 <- mutate(edges, from = from - 1, to = to - 1) %>%
+    mutate(value = 1)
 
 sankeyNetwork(Links = edges_d3, Nodes = nodes_d3,
               Source = "from", Target = "to",
@@ -214,5 +259,5 @@ sankeyNetwork(Links = edges_d3, Nodes = nodes_d3,
 #     D3.js     #
 #################
 
-write_json(list(nodes = nodes_d3, links = edges_d3),
-           path = "nba-xT-model/network-data.json")
+# write_json(list(nodes = nodes_d3, links = edges_d3),
+#            path = "nba-xT-model/network-data.json")
