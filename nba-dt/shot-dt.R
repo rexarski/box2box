@@ -7,7 +7,7 @@ rm(list=ls())
 
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(tidyverse, tidymodels, ggthemes, vip, rpart.plot,
-               randomForest, rfviz)
+               randomForest, rfviz, glue)
 
 ggplot2::theme_set(
     theme_fivethirtyeight() +
@@ -24,6 +24,7 @@ ggplot2::theme_set(
 
 spotify_green <- "#1DB954"
 
+# not used here though ;)
 gini_n_entropy <- function(vec_of_pi) {
     gini <- 1
     entropy <- 0
@@ -50,10 +51,10 @@ dat <- read_csv("data/nba-pbp/pbpstats-tracking-shots-cleaned.csv") %>%
            value = as_factor(value),
            made = as_factor(made)) %>%
     drop_na()
+
+write_csv(dat, "data/nba-pbp/stephen-curry-3.csv")
     
 glimpse(dat)
-
-# - [ ] plot a shot plot?
 
 set.seed(2021)
 shot_split <- initial_split(dat, strata = made)
@@ -85,17 +86,9 @@ doParallel::registerDoParallel()
 
 set.seed(2023)
 ptm <- proc.time()
-# tree_rs <- tune_grid(
-#     tree_spec,
-#     made ~ .,
-#     resamples = shot_folds,
-#     grid = tree_grid,
-#     metrics = metric_set(accuracy, kap, roc_auc)
-# )
 tree_wf <- workflow() %>%
     add_model(tree_spec) %>%
     add_formula(made ~ .)
-
 tree_res <- 
     tree_wf %>% 
     tune_grid(
@@ -104,70 +97,82 @@ tree_res <-
     )
 proc.time() - ptm
 
-# user  system elapsed 
-# 297.469   5.102 157.018 
-
 tree_res
 
 tree_res %>% 
     collect_metrics()
 
-model_select <- autoplot(tree_res) + scale_color_viridis_d(option = "plasma", begin = .9, end = 0)
+model_select <- autoplot(tree_res) + scale_color_viridis_d(option = "plasma", begin = .9, end = 0) +
+    labs(
+        title = "Model selection of decision tree",
+        subtitle = "on Curry's 3pt",
+        caption = glue("Rui Qiu (rq47)
+                       Data: pbpstats.com")
+    )
 ggsave("nba-dt/model_selection.png", model_select,
-       width=16, height=9)
+       width=11, height=9)
 
 show_best(tree_res, "accuracy")
 show_best(tree_res, "roc_auc")
-show_best(tree_res, "precision")
 
-# Tree1
-
-final_tree1 <- finalize_model(tree_spec, select_best(tree_res, "accuracy"))
+# tree1
+fourth_best_accuracy <- show_best(tree_res, "accuracy")[4,]
+final_tree1 <- finalize_model(tree_spec, fourth_best_accuracy)
 final_fit1 <- final_tree1 %>%
     fit(made ~ ., shot_train)
 final_fit1 %>%
     extract_fit_engine() %>%
-    rpart.plot(roundint=FALSE)
-final_fit1 %>%
+    rpart.plot(roundint=FALSE,
+               main = "Curry's 3pt decision tree 1 (accuracy)",
+               type = 5,
+               fallen.leaves = FALSE,
+               tweak = 2.5)
+
+tree1_fi <- final_fit1 %>%
     vip(geom = "col", aes = list(fill = spotify_green, alpha = 0.8)) +
-    scale_y_continuous(expand = c(0, 0))
+    scale_y_continuous(expand = c(0, 0)) +
+    labs(
+        title = "Curry's 3pt decision tree 1 feature importance",
+        subtitle = "(4th best accuracy)",
+        caption = glue("Rui Qiu (rq47)
+                       Data: pbpstats.com"))
 
-augment(final_fit1, new_data = shot_train) %>%
-    accuracy(truth = made, estimate = .pred_class)
-augment(final_fit1, new_data = shot_train) %>%
-    conf_mat(truth = made, estimate = .pred_class)
+ggsave("nba-dt/curry-tree1-fi.png", tree1_fi, width = 11, height = 9)
+
 augment(final_fit1, new_data = shot_test) %>%
     accuracy(truth = made, estimate = .pred_class)
 augment(final_fit1, new_data = shot_test) %>%
     conf_mat(truth = made, estimate = .pred_class)
 
-# - [ ] visualize that prediction and true bball court plot
-
-
-# Tree2
+# tree2
 
 final_tree2 <- finalize_model(tree_spec, select_best(tree_res, "roc_auc"))
 final_fit2 <- final_tree2 %>%
     fit(made ~ ., shot_train)
 final_fit2 %>%
     extract_fit_engine() %>%
-    rpart.plot(roundint=FALSE)
-final_fit2 %>%
+    rpart.plot(roundint=FALSE,
+               main = "Curry's 3pt decision tree 2 (roc_auc)",
+               type = 5,
+               fallen.leaves = FALSE,
+               tweak = 2.5)
+tree2_fi <- final_fit2 %>%
     vip(geom = "col", aes = list(fill = spotify_green, alpha = 0.8)) +
-    scale_y_continuous(expand = c(0, 0))
+    scale_y_continuous(expand = c(0, 0)) +
+    labs(
+        title = "Curry's 3pt decision tree 2 feature importance",
+        subtitle = "(roc_auc)",
+        caption = glue("Rui Qiu (rq47)
+                       Data: pbpstats.com"))
 
-augment(final_fit2, new_data = shot_train) %>%
-    accuracy(truth = made, estimate = .pred_class)
-augment(final_fit2, new_data = shot_train) %>%
-    conf_mat(truth = made, estimate = .pred_class)
+ggsave("nba-dt/curry-tree2-fi.png", tree2_fi, width = 11, height = 9)
+
 augment(final_fit2, new_data = shot_test) %>%
     accuracy(truth = made, estimate = .pred_class)
 augment(final_fit2, new_data = shot_test) %>%
     conf_mat(truth = made, estimate = .pred_class)
 
-# - [ ] visualize that prediction and true bball court plot
-
-# Tree3
+# tree3
 
 classic_tree_spec <- decision_tree() %>%
     set_engine("rpart") %>%
@@ -177,31 +182,35 @@ classic_tree_fit <- classic_tree_spec %>%
 classic_tree_fit
 classic_tree_fit %>%
     extract_fit_engine() %>%
-    rpart.plot(roundint=FALSE)
-classic_tree_fit %>%
+    rpart.plot(roundint=FALSE,
+               main = "Curry's 3pt decision tree 3",
+               type = 5,
+               fallen.leaves = FALSE,
+               tweak = 2.5)
+tree3_fi <- classic_tree_fit %>%
     vip(geom = "col", aes = list(fill = spotify_green, alpha = 0.8)) +
-    scale_y_continuous(expand = c(0, 0))
+    scale_y_continuous(expand = c(0, 0)) +
+    labs(
+        title = "Curry's 3pt decision tree 3 feature importance",
+        subtitle = "default settings",
+        caption = glue("Rui Qiu (rq47)
+                       Data: pbpstats.com"))
 
-augment(classic_tree_fit, new_data = shot_train) %>%
-    accuracy(truth = made, estimate = .pred_class)
-augment(classic_tree_fit, new_data = shot_train) %>%
-    conf_mat(truth = made, estimate = .pred_class)
+ggsave("nba-dt/curry-tree3-fi.png", tree3_fi, width = 11, height = 9)
+
 augment(classic_tree_fit, new_data = shot_test) %>%
     accuracy(truth = made, estimate = .pred_class)
 augment(classic_tree_fit, new_data = shot_test) %>%
     conf_mat(truth = made, estimate = .pred_class)
 
-# - [ ] visualize that prediction and true bball court plot
 
-# random forest
-###########################################################
+# Random Forest
 
 # p/3 = 3, p = 9
 rf_spec <- rand_forest(mtry = tune(),
                        trees = tune(),
                        min_n = tune()) %>%
     set_engine("ranger", importance = "impurity") %>%
-    # set_engine("randomForest", importance = TRUE) %>%
     set_mode("classification")
 
 # feature engineering
@@ -219,9 +228,7 @@ rf_wf <- workflow() %>%
     add_model(rf_spec) %>%
     add_recipe(shot_recipe)
 
-# In the code below, we set the range from 4 to 12. This is because we have 18 columns in churn_df and we would like to test mtry() values somewhere in the middle between 1 and 18, trying to avoid values close to the ends.
-
-rf_grid <- grid_random(mtry() %>% range_set(c(4, 12)),
+rf_grid <- grid_random(mtry() %>% range_set(c(3, 6)),
                        trees(),
                        min_n(),
                        size = 10)
@@ -244,11 +251,15 @@ rf_wf_fit <- final_rf_wf %>%
 rf_fit <- rf_wf_fit %>%
     extract_fit_parsnip()
 
-rf_fit %>%
+rf_fi <- rf_fit %>%
     vip(geom = "col", aes = list(fill = spotify_green, alpha = 0.8)) +
-    scale_y_continuous(expand = c(0, 0))
+    scale_y_continuous(expand = c(0, 0)) +
+    labs(
+        title = "Curry's 3pt random forest feature importance",
+        caption = glue("Rui Qiu (rq47)
+                       Data: pbpstats.com"))
 
-# last_fit() will fit our wf to the training data and genearte predictions on the test data
+ggsave("nba-dt/rf-fi.png", rf_fi, width = 11, height = 9)
 
 rf_last_fit <- final_rf_wf %>%
     last_fit(shot_split)
@@ -262,23 +273,16 @@ conf_mat(rf_predictions,
          truth = made,
          estimate = .pred_class)
 
-
-# As far as I know, there is no built-in function to plot a ranger tree or a randomForest tree (see here and here). However, the forest of decision trees is made up of 500 trees by default, it seems exaggerated to have a plot for each of them. There are some methods to plot decision trees from other algorithm such as rpart, party or tree. Have a look here for a brief tour of these methods for plotting trees and forests .
-
-# https://stackoverflow.com/questions/67658683/r-tidymodels-is-it-possible-to-plot-the-trees-for-a-random-forest-model-in-tid
-
-
 # retrieve a sample tree (no way to visualize it though)
 
-rf_model <- randomForest(made ~ .,
-                         data = shot_train,
-                         ntree = 500)
-
-getTree(rf_model, 10, labelVar=TRUE)
+# rf_model <- randomForest(made ~ .,
+#                          data = shot_train,
+#                          ntree = 500)
+# 
+# getTree(rf_model, 10, labelVar=TRUE)
 
 # Decision Tree Feature Importance for different datasets
 
 rfprep <- rf_prep(x=shot_train[,1:9], y=shot_train$made, seed=2021)
 rf_viz(rfprep)
 
-# - [ ] visualize that prediction and true bball court plot
