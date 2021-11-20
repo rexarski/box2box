@@ -14,7 +14,7 @@ ggplot2::theme_set(
         theme(
             text = element_text(family = "Roboto Condensed"),
             title = element_text(size = 14),
-            plot.subtitle = element_text(size = 7),
+            plot.subtitle = element_text(size = 12),
             plot.caption = element_text(size = 10),
             axis.title = element_text(size = 14),
             axis.text = element_text(size = 12),
