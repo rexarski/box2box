@@ -65,9 +65,6 @@ nb.m1 <- train(
 confusionMatrix(nb.m1)
 
 # tune the following hyperparameters:
-# usekernel: use a kernel density estimate for continuous variables vs a guassian density estimate
-# adjust: adjust the bandwidth of the kernel density (larger numbers mean more flexible density estimate)
-# fL: Laplace smoother
 
 search_grid <- expand.grid(
     usekernel = c(TRUE, FALSE),
@@ -230,3 +227,20 @@ ggplot(test, aes(x=x, y=y, color=svm_accurate)) +
                        Source: Toronto Raptors' play-by-play data."))
 
 ggsave("nba-nb-svm/svm-prediction-accuracy.png", plot=last_plot(), height=8, width=8)
+
+test2 <- test %>%
+    select(made, nb_predicted, svm_predicted, nb_accurate, svm_accurate, x, y) %>%
+    mutate(`Two classifiers agree` = nb_predicted == svm_predicted)
+
+ggplot(test2, aes(x=x, y=y, color=`Two classifiers agree`)) +
+    geom_point(alpha = 0.5, size = 2) +
+    ylim(0, 400) +
+    coord_equal() +
+    scale_colour_manual(values=c("#000000", "#CE1141")) +
+    labs(
+        title = "Toronto Raptors Shot Attempts Prediction Difference",
+        subtitle = "Naïve Bayes vs Linear SVM",
+        caption = glue("Created by Rui Qiu(rq47)
+                       Source: Toronto Raptors' play-by-play data."))
+
+ggsave("nba-nb-svm/svm-vs-nb-viz.png", plot=last_plot(), height=8, width=8)
