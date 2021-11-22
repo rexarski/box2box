@@ -97,6 +97,10 @@ confusionMatrix(nb.m2)
 pred <- predict(nb.m2, newdata = test)
 confusionMatrix(pred, test$made)
 
+# estimate variable importance
+
+nb.m2$finalModel
+
 test <- test %>%
     mutate(nb_predicted = pred)
 
